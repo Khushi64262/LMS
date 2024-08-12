@@ -1,5 +1,6 @@
 from flask import current_app as app, jsonify, request, render_template
 from flask_security import auth_required, roles_required
+from datetime import datetime, timedelta
 from werkzeug.security import check_password_hash
 from .models import User, db
 from .sec import datastore
@@ -34,6 +35,8 @@ def user_login():
         return jsonify({"message":"User not Found"}), 404
     
     if check_password_hash(user.password, data.get("password")):
+        user.last_login = datetime.now()
+        db.session.commit()
         return {"token":user.get_auth_token(),
                "username": user.username,
                "role": user.roles[0].name,

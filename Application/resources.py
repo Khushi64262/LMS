@@ -4,12 +4,12 @@ from datetime import datetime, timedelta
 from Application.models import Section, User, EBook, GrantRequest, Feedback, Statistics, db, Role
 from flask_security import auth_required, roles_required
 from flask_security import current_user
-from flask import current_app as app,jsonify,request
+
 from werkzeug.security import generate_password_hash, check_password_hash
 
 api = Api(prefix='/api')
 
-datastore = app.extensions['security'].datastore
+
 
 # Parser and Marshaling for Section
 parser = reqparse.RequestParser()
@@ -115,34 +115,6 @@ class UserResource(Resource):
 api.add_resource(UserResource, '/users')
 
 
-class UserRegistration(Resource):
-    @marshal_with(user_fields)  
-    def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('username', type=str, required=True, help='Username cannot be blank')
-        parser.add_argument('email', type=str, required=True, help='Email cannot be blank')
-        parser.add_argument('password', type=str, required=True, help='Password cannot be blank')
-        args = parser.parse_args()
-        print(args)
-        if datastore.find_user(email=args['email']):
-            print("User with this email already exists")
-            return {'message': 'User with this email already exists'}, 400
-        print("new user")
-        user_role = datastore.find_or_create_role(name='user', description='General User Role')
-        print(user_role)
-        user = datastore.create_user(
-            username=args['username'],
-            email=args['email'],
-            password=generate_password_hash(args['password']),
-            roles=[user_role],
-            active=True  
-        )
-        
-        db.session.commit()
-
-        return user, 201
-    
-api.add_resource(UserRegistration, '/register')
 
 
 # Parser and Marshaling for EBook
